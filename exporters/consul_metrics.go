@@ -6,15 +6,15 @@ import (
 	"regexp"
 
 	"github.com/hashicorp/consul/api"
-	"github.com/prometheus/client_go/prometheus"
-	"github.com/prometheus/client_go/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var (
 	up = prometheus.NewDesc(
 		"consul_up",
 		"Was talking to Consul successful.",
-		nil, nil,
+		[]string{"host", "job"}, nil,
 	)
 	invalidChars = regexp.MustCompile("[^a-zA-Z0-9:_]")
 )
@@ -29,21 +29,22 @@ func (c ConsulCollector) Describe(ch chan<- *prometheus.Desc) {
 func (c ConsulCollector) Collect(ch chan<- prometheus.Metric)  {
 	consul, err := api.NewClient(api.DefaultConfig())
 	if err != nil {
-		ch <- prometheus.MustNewConstMetric(up, prometheus.GaugeValue, 0)
+		ch <- prometheus.MustNewConstMetric(up, prometheus.GaugeValue, 0, "localhost", "test-job")
 		return
 	}
 
 	metrics, err := consul.Agent().Metrics()
 	if err != nil {
-		ch <- prometheus.MustNewConstMetric(up, prometheus.GaugeValue, 0)
+		ch <- prometheus.MustNewConstMetric(up, prometheus.GaugeValue, 0, "localhost", "test-job")
 		return
 	}
-	ch <- prometheus.MustNewConstMetric(up, prometheus.GaugeValue, 1)
+	ch <- prometheus.MustNewConstMetric(up, prometheus.GaugeValue, 1, "localhost", "test-job")
 
 	for _, g := range metrics.Gauges {
+		name := invalidChars.ReplaceAllLiteralString(g.Name, "_")
 		desc := prometheus.NewDesc(name, "Consul metric "+g.Name, nil, nil)
 		ch <- prometheus.MustNewConstMetric(
-		desc, prometheus.GaugeValue, float64(g.Value))
+			desc, prometheus.GaugeValue, float64(g.Value))
 	}
 
 	for _, c := range metrics.Counters {
