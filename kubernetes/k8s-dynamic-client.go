@@ -7,6 +7,7 @@ import (
 	"os"
 
     metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
     "k8s.io/client-go/tools/clientcmd"
     "k8s.io/client-go/dynamic"
@@ -45,5 +46,11 @@ func main() {
 
 	json, err := rule.MarshalJSON()
 	fmt.Println(string(json))
+
+	name, found, err := unstructured.NestedString(rule.Object, "metadata", "name")
+	fmt.Println(name, found)
+
+	name, found, err := unstructured.NestedFieldNoCopy(rule.Object, "metadata", "name")
+	
 
 }
