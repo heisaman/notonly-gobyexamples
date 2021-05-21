@@ -1,0 +1,16 @@
+domain: programming-kubernetes.info
+layout:
+- go.kubebuilder.io/v3
+projectName: cnat-kubebuilder
+repo: gobyexamples
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: programming-kubernetes.info
+  group: cnat
+  kind: At
+  path: gobyexamples/api/v1alpha1
+  version: v1alpha1
+version: "3"
