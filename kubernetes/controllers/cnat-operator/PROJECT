@@ -1,0 +1,19 @@
+domain: programming-kubernetes.info
+layout:
+- go.kubebuilder.io/v3
+plugins:
+  manifests.sdk.operatorframework.io/v2: {}
+  scorecard.sdk.operatorframework.io/v2: {}
+projectName: cnat-operator
+repo: gobyexamples
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: programming-kubernetes.info
+  group: cnat.programming-kubernetes.info
+  kind: At
+  path: gobyexamples/api/v1alpha1
+  version: v1alpha1
+version: "3"
