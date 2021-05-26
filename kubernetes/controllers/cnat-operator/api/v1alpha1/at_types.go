@@ -20,22 +20,28 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+const (
+	PhasePending = "PENDING"
+	PhaseRunning = "RUNNING"
+	PhaseDone    = "DONE"
+)
 
 // AtSpec defines the desired state of At
+// +k8s:openapi-gen=true
 type AtSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of At. Edit at_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Schedule string `json:"schedule,omitempty"`
+	// Command is the desired command (executed in a Bash shell) to be executed.
+	Command string `json:"command,omitempty"`
 }
 
 // AtStatus defines the observed state of At
+// +k8s:openapi-gen=true
 type AtStatus struct {
-	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "make" to regenerate code after modifying this file
+	// it is PENDING, afterwards it is DONE.
+	Phase string `json:"phase,omitempty"`
 }
 
 //+kubebuilder:object:root=true

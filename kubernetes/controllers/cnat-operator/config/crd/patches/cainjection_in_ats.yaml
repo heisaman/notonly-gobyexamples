@@ -4,4 +4,4 @@ kind: CustomResourceDefinition
 metadata:
   annotations:
     cert-manager.io/inject-ca-from: $(CERTIFICATE_NAMESPACE)/$(CERTIFICATE_NAME)
-  name: ats.cnat.programming-kubernetes.info.programming-kubernetes.info
+  name: ats.cnat.programming-kubernetes.info

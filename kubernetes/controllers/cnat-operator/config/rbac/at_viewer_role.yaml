@@ -5,7 +5,7 @@ metadata:
   name: at-viewer-role
 rules:
 - apiGroups:
-  - cnat.programming-kubernetes.info.programming-kubernetes.info
+  - cnat.programming-kubernetes.info
   resources:
   - ats
   verbs:
@@ -13,7 +13,7 @@ rules:
   - list
   - watch
 - apiGroups:
-  - cnat.programming-kubernetes.info.programming-kubernetes.info
+  - cnat.programming-kubernetes.info
   resources:
   - ats/status
   verbs:
