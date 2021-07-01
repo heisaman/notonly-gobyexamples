@@ -26,7 +26,7 @@ type EcsTarget struct {
 
 func getEcsAddresses(ctx context.Context) ([]EcsTarget, error) {
 
-	cmdbHost := ""
+	cmdbHost := "rm-xxxxxxx.mysql.rds.aliyuncs.com"
 	cmdbPort := ""
 	user := ""
 	password := ""
@@ -38,13 +38,10 @@ func getEcsAddresses(ctx context.Context) ([]EcsTarget, error) {
 	}
 	defer db.Close()
 
-	results, err := db.QueryContext(ctx, `SELECT COALESCE(public_ip_address, '') as ip, COALESCE(applications, '') as applications, COALESCE(cluster, '') as cluster,
-						COALESCE(services, '') as services, os_type FROM create_ecs_instance where instance_network_type='classic' and 
-						instance_name NOT LIKE '%k8s%' and instance_name != '医美生产'
-						union 
-						SELECT COALESCE(private_ip_address, '') as ip, COALESCE(applications, '') as applications, COALESCE(cluster, '') as cluster,
-						COALESCE(services, '') as services, os_type FROM create_ecs_instance where instance_network_type='vpc' and 
-						instance_name NOT LIKE '%k8s%' and instance_name != '医美生产'`)
+	results, err := db.QueryContext(ctx, `SELECT COALESCE(inner_ip_address, '') as inner_ip, COALESCE(public_ip_address, '') as public_ip,
+						COALESCE(private_ip_address, '') as private_ip, COALESCE(eip_ip_address, '') as eip, COALESCE(applications, '') as applications, COALESCE(cluster, '') as cluster,
+						COALESCE(services, '') as services, os_type, COALESCE(environment, '') as env, COALESCE(department, '') as department,
+						use_pub_ip FROM create_ecs_instance where instance_name NOT LIKE '%k8s%' and instance_name != '医美生产'`)
 	if err != nil {
 		level.Error(logger).Log("err", err)
 		return nil, errors.Wrap(err, "failed to create mysql database connection to DB")
@@ -53,12 +50,26 @@ func getEcsAddresses(ctx context.Context) ([]EcsTarget, error) {
 
 	targets := []EcsTarget{}
 	for results.Next() {
-		var ip, applications, cluster, services, osType string
-		err = results.Scan(&ip, &applications, &cluster, &services, &osType)
+		var ip, inner_ip, public_ip, private_ip, eip, applications, cluster, services, osType, env, department string
+		var use_pub_ip int32
+		err = results.Scan(&inner_ip, &public_ip, &private_ip, &eip, &applications, &cluster, &services, &osType, &env, &department, &use_pub_ip)
 		if err != nil {
 			level.Error(logger).Log("err", err)
 			continue
 		}
+		if use_pub_ip == 1 {
+			if public_ip != "" {
+				ip = public_ip
+			}
+			if eip != "" {
+				ip = eip
+			}
+		} else if inner_ip != "" {
+			ip = inner_ip
+		} else {
+			ip = private_ip
+		}
+
 		if osType == "linux" {
 			ip = ip + ":9100"
 		} else {
@@ -66,7 +77,7 @@ func getEcsAddresses(ctx context.Context) ([]EcsTarget, error) {
 		}
 		targets = append(targets, EcsTarget{
 			Targets: []string{ip},
-			Labels:  map[string]string{"application": applications, "cluster": cluster, "service": services},
+			Labels:  map[string]string{"application": applications, "cluster": cluster, "service": services, "ostype": osType, "env": env, "department": department},
 		})
 	}
 
